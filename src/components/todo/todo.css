@@ -1,0 +1,41 @@
+.todo-title{
+    font-size: 20px;
+    color: red;
+    margin: 15px 0;
+    text-align: center;
+    font-weight: 500;
+}
+.todo-container{
+    margin: 50px auto;
+    width: 600px;
+}
+.todo-input{
+    margin: auto;
+    display: flex;
+    font-weight: 500;
+}
+.add-btn{
+    display: flex;
+    margin: 15px auto;
+    text-align: center;
+}
+.todo-data{
+    margin-top: 20px;
+    border-radius: 5px;
+    padding: 15px;
+    gap: 15px;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    border: solid 1px ;
+    font-weight: 500;
+}
+.todo-item {
+    display: flex;
+    justify-content: space-between; /* Đẩy tên và nút ra 2 phía */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
