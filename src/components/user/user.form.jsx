@@ -1,15 +1,27 @@
 import Input from "antd/es/input/Input";
-import { Button } from "antd";
+import { Button, notification } from "antd";
 import { useState } from "react";
+import { createUserAPI } from "../../services/api.service";
 
 const UserForm = () => {
   const [fullName, setFullName] = useState();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
-  const [phoneNumber, setPhoneNumber] = useState();
+  const [phone, setPhone] = useState();
 
-  const handleClickBtn = () => {
-    console.log("onClick");
+  const handleClickBtn = async () => {
+    const res = await createUserAPI(fullName, email, password, phone);
+    if (res.data) {
+      notification.success({
+        message: "Create user",
+        description: "Tạo user thành công",
+      });
+    } else {
+      notification.error({
+        message: "Error create user",
+        description: JSON.stringify(res.message),
+      });
+    }
   };
 
   return (
@@ -45,9 +57,9 @@ const UserForm = () => {
         <div>
           <span>Phone Number</span>
           <Input
-            value={phoneNumber}
+            value={phone}
             onChange={(event) => {
-              setPhoneNumber(event.target.value);
+              setPhone(event.target.value);
             }}
           />
         </div>
