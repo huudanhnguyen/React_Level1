@@ -16,7 +16,7 @@ const UpdateUserModal = (props) => {
     onUserCreated,
   } = props;
 
-  // Khi modal mở, tự động load dữ liệu user cần chỉnh sửa
+  // When the modal opens, automatically load the user's data for editing
   useEffect(() => {
     if (dataUpdate) {
       setId(dataUpdate._id || "");
@@ -30,14 +30,14 @@ const UpdateUserModal = (props) => {
 
     if (res?.data) {
       notification.success({
-        message: "Edit user",
-        description: "Chỉnh sửa user thành công",
+        message: "Edit User",
+        description: "User updated successfully",
       });
 
-      // Gọi callback cập nhật danh sách user
+      // Callback to refresh user list
       if (onUserCreated) onUserCreated(res.data);
 
-      // ✅ Đóng modal
+      // ✅ Close the modal
       setIsModalUpdateOpen(false);
 
       // Reset form
@@ -47,7 +47,7 @@ const UpdateUserModal = (props) => {
       setDataUpdate(null);
     } else {
       notification.error({
-        message: "Error edit user",
+        message: "Edit User Error",
         description: JSON.stringify(res?.message),
       });
     }
@@ -65,7 +65,7 @@ const UpdateUserModal = (props) => {
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 15 }}>
           <div>
-            <span>Id</span>
+            <span>ID</span>
             <Input value={id} disabled />
           </div>
 

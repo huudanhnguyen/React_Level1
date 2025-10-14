@@ -17,7 +17,7 @@ const ViewUserDetail = (props) => {
 
   return (
     <Drawer
-      title="👤 Thông tin chi tiết người dùng"
+      title="👤 User Details"
       width={420}
       onClose={onClose}
       open={isDetailOpen}
@@ -51,21 +51,21 @@ const ViewUserDetail = (props) => {
                 </>
               }
             >
-              {dataDetail.email || "Không có"}
+              {dataDetail.email || "Not available"}
             </Descriptions.Item>
             <Descriptions.Item
               label={
                 <>
-                  <PhoneOutlined /> Số điện thoại
+                  <PhoneOutlined /> Phone Number
                 </>
               }
             >
-              {dataDetail.phone || "Không có"}
+              {dataDetail.phone || "Not available"}
             </Descriptions.Item>
             <Descriptions.Item
               label={
                 <>
-                  <IdcardOutlined /> ID
+                  <IdcardOutlined /> User ID
                 </>
               }
             >
@@ -75,7 +75,7 @@ const ViewUserDetail = (props) => {
         </div>
       ) : (
         <Empty
-          description={<span>Không có dữ liệu người dùng</span>}
+          description={<span>No user data available</span>}
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         />
       )}

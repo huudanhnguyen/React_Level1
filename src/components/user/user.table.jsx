@@ -12,6 +12,7 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
   const [dataDetail, setDataDetail] = useState();
   const [isDetailOpen, setIsDetailOpen] = useState();
 
+  // Load all users
   const loadUser = async () => {
     const res = await fetchAllUserAPI();
     if (res?.data) {
@@ -19,47 +20,42 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
     }
   };
 
+  // Initial load
   useEffect(() => {
     loadUser();
   }, []);
 
-  // Nếu có triggerReload (biến đếm) → reload lại
+  // Reload when triggerReload changes
   useEffect(() => {
     if (triggerReload > 0) loadUser();
   }, [triggerReload]);
 
-  // Nếu có user mới → thêm lên đầu
+  // If a new user is created → prepend to the table
   useEffect(() => {
     if (newUser) {
       setDataUsers((prev) => [newUser, ...prev]);
     }
   }, [newUser]);
-  const confirm = (e) => {
-    console.log(e);
-    message.success("Click on Yes");
-  };
+
   const handleDeleteUser = async (id) => {
     const res = await deleteUserAPI(id);
     if (res.data) {
       notification.success({
         message: "Delete User",
-        description: "Xóa User thành công",
+        description: "User deleted successfully",
       });
       await loadUser();
     } else {
       notification.error({
-        message: "Error Delete User",
+        message: "Delete User Error",
         description: JSON.stringify(res.message),
       });
     }
   };
-  const cancel = (e) => {
-    console.log(e);
-    message.error("Click on No");
-  };
+
   const columns = [
     {
-      title: "Id",
+      title: "ID",
       dataIndex: "_id",
       render: (_, record) => {
         return (
@@ -82,28 +78,24 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
       title: "Action",
       key: "action",
       render: (_, record) => (
-        <>
-          <Space size="middle">
-            <EditOutlined
-              onClick={() => {
-                setDataUpdate(record);
-                setIsModalUpdateOpen(true);
-              }}
-            />
-            <Popconfirm
-              title="Delete the task"
-              description="Are you sure to delete this task?"
-              onConfirm={() => {
-                handleDeleteUser(record._id);
-              }}
-              // onCancel={cancel}
-              okText="Yes"
-              // cancelText="No"
-            >
-              <DeleteOutlined />
-            </Popconfirm>
-          </Space>
-        </>
+        <Space size="middle">
+          <EditOutlined
+            onClick={() => {
+              setDataUpdate(record);
+              setIsModalUpdateOpen(true);
+            }}
+            style={{ color: "#1677ff", cursor: "pointer" }}
+          />
+          <Popconfirm
+            title="Delete User"
+            description="Are you sure you want to delete this user?"
+            onConfirm={() => handleDeleteUser(record._id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <DeleteOutlined style={{ color: "red", cursor: "pointer" }} />
+          </Popconfirm>
+        </Space>
       ),
     },
   ];
@@ -111,6 +103,7 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
   return (
     <>
       <Table columns={columns} dataSource={dataUsers} rowKey="_id" />
+
       <UpdateUserModal
         isModalUpdateOpen={isModalUpdateOpen}
         setIsModalUpdateOpen={setIsModalUpdateOpen}
@@ -118,6 +111,7 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
         setDataUpdate={setDataUpdate}
         onUserCreated={onUserCreated}
       />
+
       <ViewUserDetail
         dataDetail={dataDetail}
         setDataDetail={setDataDetail}

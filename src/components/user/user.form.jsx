@@ -14,11 +14,11 @@ const UserForm = ({ onUserCreated }) => {
     const res = await createUserAPI(fullName, email, password, phone);
     if (res?.data) {
       notification.success({
-        message: "Create user",
-        description: "Tạo user thành công",
+        message: "Create User",
+        description: "User created successfully",
       });
 
-      // ✅ Gọi callback để thêm user vào đầu danh sách
+      // ✅ Trigger callback to add the new user to the list
       if (onUserCreated) onUserCreated(res.data);
 
       setIsModalOpen(false);
@@ -28,7 +28,7 @@ const UserForm = ({ onUserCreated }) => {
       setPhone("");
     } else {
       notification.error({
-        message: "Error create user",
+        message: "Create User Error",
         description: JSON.stringify(res?.message),
       });
     }
@@ -77,7 +77,7 @@ const UserForm = ({ onUserCreated }) => {
           alignItems: "center",
         }}
       >
-        <h3>Table Users</h3>
+        <h3>User Table</h3>
         <Button type="primary" onClick={() => setIsModalOpen(true)}>
           Create User
         </Button>
