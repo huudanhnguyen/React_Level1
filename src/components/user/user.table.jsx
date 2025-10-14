@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Table, Space } from "antd";
+import { Table, Space, message, Popconfirm, Button, notification } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { fetchAllUserAPI } from "../../services/api.service";
+import { deleteUserAPI, fetchAllUserAPI } from "../../services/api.service";
 import UpdateUserModal from "./update.user";
 import ViewUserDetail from "./view.user.detail";
 
@@ -34,7 +34,29 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
       setDataUsers((prev) => [newUser, ...prev]);
     }
   }, [newUser]);
-
+  const confirm = (e) => {
+    console.log(e);
+    message.success("Click on Yes");
+  };
+  const handleDeleteUser = async (id) => {
+    const res = await deleteUserAPI(id);
+    if (res.data) {
+      notification.success({
+        message: "Delete User",
+        description: "Xóa User thành công",
+      });
+      await loadUser();
+    } else {
+      notification.error({
+        message: "Error Delete User",
+        description: JSON.stringify(res.message),
+      });
+    }
+  };
+  const cancel = (e) => {
+    console.log(e);
+    message.error("Click on No");
+  };
   const columns = [
     {
       title: "Id",
@@ -44,7 +66,7 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
           <a
             href=""
             onClick={(e) => {
-              e.preventDefault(); // 🔥 Ngăn reload lại trang
+              e.preventDefault();
               setDataDetail(record);
               setIsDetailOpen(true);
             }}
@@ -68,7 +90,18 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
                 setIsModalUpdateOpen(true);
               }}
             />
-            <DeleteOutlined />
+            <Popconfirm
+              title="Delete the task"
+              description="Are you sure to delete this task?"
+              onConfirm={() => {
+                handleDeleteUser(record._id);
+              }}
+              // onCancel={cancel}
+              okText="Yes"
+              // cancelText="No"
+            >
+              <DeleteOutlined />
+            </Popconfirm>
           </Space>
         </>
       ),
