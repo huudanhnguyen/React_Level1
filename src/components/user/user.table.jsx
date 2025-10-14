@@ -3,11 +3,14 @@ import { Table, Space } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { fetchAllUserAPI } from "../../services/api.service";
 import UpdateUserModal from "./update.user";
+import ViewUserDetail from "./view.user.detail";
 
 const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
   const [dataUsers, setDataUsers] = useState([]);
   const [isModalUpdateOpen, setIsModalUpdateOpen] = useState(false);
   const [dataUpdate, setDataUpdate] = useState();
+  const [dataDetail, setDataDetail] = useState();
+  const [isDetailOpen, setIsDetailOpen] = useState();
 
   const loadUser = async () => {
     const res = await fetchAllUserAPI();
@@ -33,7 +36,24 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
   }, [newUser]);
 
   const columns = [
-    { title: "Id", dataIndex: "_id" },
+    {
+      title: "Id",
+      dataIndex: "_id",
+      render: (_, record) => {
+        return (
+          <a
+            href=""
+            onClick={(e) => {
+              e.preventDefault(); // 🔥 Ngăn reload lại trang
+              setDataDetail(record);
+              setIsDetailOpen(true);
+            }}
+          >
+            {record._id}
+          </a>
+        );
+      },
+    },
     { title: "Full Name", dataIndex: "fullName" },
     { title: "Email", dataIndex: "email" },
     {
@@ -57,7 +77,7 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
 
   return (
     <>
-      <Table columns={columns} dataSource={dataUsers} rowKey="_id" />;
+      <Table columns={columns} dataSource={dataUsers} rowKey="_id" />
       <UpdateUserModal
         isModalUpdateOpen={isModalUpdateOpen}
         setIsModalUpdateOpen={setIsModalUpdateOpen}
@@ -65,7 +85,12 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
         setDataUpdate={setDataUpdate}
         onUserCreated={onUserCreated}
       />
-      ;
+      <ViewUserDetail
+        dataDetail={dataDetail}
+        setDataDetail={setDataDetail}
+        isDetailOpen={isDetailOpen}
+        setIsDetailOpen={setIsDetailOpen}
+      />
     </>
   );
 };
