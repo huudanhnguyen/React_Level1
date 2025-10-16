@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import {
   Button,
   Card,
@@ -16,12 +16,15 @@ import {
 } from "@ant-design/icons";
 import { loginAPI } from "../services/api.service";
 import { useNavigate, Link } from "react-router-dom";
+import { AuthContext } from "../components/context/auth.context";
 
 const { Title, Text } = Typography;
 
 const LoginPage = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const { setUser } = useContext(AuthContext);
+
   const navigate = useNavigate();
 
   const onFinish = async (values) => {
@@ -33,6 +36,8 @@ const LoginPage = () => {
         message: "Login User",
         description: "Login success",
       });
+      localStorage.setItem("access_token", res.data.access_token);
+      setUser(res.data.user);
       navigate("/");
     } else {
       notification.error({
