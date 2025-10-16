@@ -6,7 +6,7 @@ import {
   Input,
   Typography,
   message,
-  Space,
+  notification,
 } from "antd";
 import {
   LockOutlined,
@@ -14,26 +14,33 @@ import {
   EyeInvisibleOutlined,
   EyeTwoTone,
 } from "@ant-design/icons";
+import { loginAPI } from "../services/api.service";
+import { useNavigate, Link } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
 const LoginPage = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const onFinish = async (values) => {
-    console.log("✅ Login data:", values);
     setLoading(true);
-    try {
-      // 🚀 Giả lập gọi API login
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      message.success("Login success! 🎉");
-      // 👉 Gọi API thật ở đây, ví dụ: await loginAPI(values)
-    } catch (error) {
-      message.error("Login failed!");
-    } finally {
-      setLoading(false);
+    const res = await loginAPI(values.email, values.password);
+    console.log(res.data);
+    if (res.data) {
+      notification.success({
+        message: "Login User",
+        description: "Login success",
+      });
+      navigate("/");
+    } else {
+      notification.error({
+        message: "Login User",
+        description: JSON.stringify(res.message),
+      });
     }
+    setLoading(false);
   };
 
   return (
@@ -126,9 +133,13 @@ const LoginPage = () => {
                 color: "#1890ff",
                 cursor: "pointer",
               }}
-              onClick={() => message.info("Redirect to register page!")}
             >
-              Create account
+              <Link
+                to="/register"
+                style={{ color: "#1890ff", fontWeight: 500 }}
+              >
+                Create Account
+              </Link>
             </Text>
           </div>
 

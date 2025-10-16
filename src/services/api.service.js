@@ -1,3 +1,4 @@
+import Password from "antd/es/input/Password";
 import axios from "./axios.customize";
 
 // 🧩 Upload file kèm log kiểm tra
@@ -33,10 +34,32 @@ const fetchAllUserAPI = (current,pageSize) => axios.get(`/api/v1/user?current=${
 // 🧩 API xóa user
 const deleteUserAPI = (id) => axios.delete(`/api/v1/user/${id}`);
 
+const registerUserAPI=(fullName,email,password,phone)=>{
+  const URL_BACKEND="/api/v1/user/register";
+  const data={
+    fullName:fullName,
+    email:email,
+    password:password,
+    phone:phone
+  }
+  return axios.post(URL_BACKEND,data)
+}
+const loginAPI=(email,password)=>{
+  const URL_BACKEND="/api/v1/auth/login";
+  const data={
+    username:email,
+    password:password,
+    delay:2000
+  }
+  return axios.post(URL_BACKEND,data)
+}
+
 export {
   createUserAPI,
   updateUserAPI,
   fetchAllUserAPI,
   deleteUserAPI,
   uploadFileAPI,
+  registerUserAPI,
+  loginAPI
 };

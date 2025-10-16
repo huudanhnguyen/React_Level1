@@ -1,34 +1,44 @@
 import { useState } from "react";
-import { Button, Card, Form, Input, Upload, Typography, message } from "antd";
+import { useNavigate, Link } from "react-router-dom";
+import { Button, Card, Form, Input, Typography, notification } from "antd";
 import {
   UserOutlined,
   MailOutlined,
   LockOutlined,
   PhoneOutlined,
-  UploadOutlined,
   EyeInvisibleOutlined,
   EyeTwoTone,
 } from "@ant-design/icons";
+import { registerUserAPI } from "../services/api.service";
 
 const { Title, Text } = Typography;
 
 const RegisterPage = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const onFinish = async (values) => {
-    console.log("✅ Register data:", { ...values });
     setLoading(true);
-    try {
-      // 🚀 Giả lập API đăng ký
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      message.success("Register success! 🎉");
-      form.resetFields();
-      setAvatar(null);
-    } catch (error) {
-      message.error("Register failed!");
-    } finally {
-      setLoading(false);
+    const res = await registerUserAPI(
+      values.fullName,
+      values.email,
+      values.password,
+      values.phone
+    );
+    setLoading(false);
+
+    if (res.data) {
+      notification.success({
+        message: "Register User",
+        description: "Register success",
+      });
+      navigate("/login");
+    } else {
+      notification.error({
+        message: "Register User",
+        description: JSON.stringify(res.message),
+      });
     }
   };
 
@@ -69,9 +79,8 @@ const RegisterPage = () => {
           <Form.Item
             label="Full Name"
             name="fullName"
-            rules={[
-              { required: true, message: "Please enter your full name!" },
-            ]}
+            hasFeedback
+            rules={[{ required: true, message: "Please enter your full name!" }]}
           >
             <Input
               prefix={<UserOutlined style={{ color: "#1890ff" }} />}
@@ -83,6 +92,7 @@ const RegisterPage = () => {
           <Form.Item
             label="Email"
             name="email"
+            hasFeedback
             rules={[
               { required: true, message: "Please enter your email!" },
               { type: "email", message: "Invalid email format!" },
@@ -98,7 +108,16 @@ const RegisterPage = () => {
           <Form.Item
             label="Password"
             name="password"
-            rules={[{ required: true, message: "Please enter your password!" }]}
+            hasFeedback
+            rules={[
+              { required: true, message: "Please enter your password!" },
+              { min: 6, message: "Password must be at least 6 characters!" },
+              {
+                pattern: /^(?=.*[A-Z])(?=.*\d)/,
+                message:
+                  "Password must include at least 1 uppercase letter and 1 number!",
+              },
+            ]}
           >
             <Input.Password
               prefix={<LockOutlined style={{ color: "#1890ff" }} />}
@@ -117,8 +136,14 @@ const RegisterPage = () => {
           <Form.Item
             label="Phone Number"
             name="phone"
+            hasFeedback
             rules={[
               { required: true, message: "Please enter your phone number!" },
+              {
+                pattern: /^[0-9]{10,11}$/,
+                message:
+                  "Phone number must be 10–11 digits and contain only numbers!",
+              },
             ]}
           >
             <Input
@@ -145,6 +170,15 @@ const RegisterPage = () => {
               {loading ? "Registering..." : "Register"}
             </Button>
           </Form.Item>
+
+          <div style={{ textAlign: "center" }}>
+            <Text type="secondary">
+              Already have an account?{" "}
+              <Link to="/login" style={{ color: "#1890ff", fontWeight: 500 }}>
+                Login
+              </Link>
+            </Text>
+          </div>
         </Form>
       </Card>
     </div>
