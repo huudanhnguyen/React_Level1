@@ -11,19 +11,25 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
   const [dataUpdate, setDataUpdate] = useState();
   const [dataDetail, setDataDetail] = useState();
   const [isDetailOpen, setIsDetailOpen] = useState();
+  const [current, setCurrent] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+  const [total, setTotal] = useState(0);
 
   // Load all users
   const loadUser = async () => {
-    const res = await fetchAllUserAPI();
-    if (res?.data) {
-      setDataUsers(res.data);
+    const res = await fetchAllUserAPI(current, pageSize);
+    if (res?.data.result) {
+      setDataUsers(res.data.result);
+      setCurrent(res.data.meta.current);
+      setPageSize(res.data.meta.pageSize);
+      setTotal(res.data.meta.total);
     }
   };
 
   // Initial load
   useEffect(() => {
     loadUser();
-  }, []);
+  }, [current, pageSize]);
 
   // Reload when triggerReload changes
   useEffect(() => {
@@ -52,8 +58,26 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
       });
     }
   };
+  const onChange = (pagination, filters, sorter, extra) => {
+    if (pagination && pagination.current) {
+      if (pagination.current !== +current) {
+        setCurrent(+pagination.current);
+      }
+    }
+    if (pagination && pagination.pageSize) {
+      if (pagination.pageSize !== +pageSize) {
+        setPageSize(+pagination.pageSize);
+      }
+    }
+  };
 
   const columns = [
+    {
+      title: "Serial column",
+      render: (_, record, index) => {
+        return <>{index + 1 + (current - 1) * pageSize}</>;
+      },
+    },
     {
       title: "ID",
       dataIndex: "_id",
@@ -102,7 +126,26 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
 
   return (
     <>
-      <Table columns={columns} dataSource={dataUsers} rowKey="_id" />
+      <Table
+        columns={columns}
+        dataSource={dataUsers}
+        rowKey="_id"
+        pagination={{
+          current: current,
+          pageSize: pageSize,
+          showSizeChanger: true,
+          total: total,
+          showTotal: (total, range) => {
+            return (
+              <div>
+                {" "}
+                {range[0]}-{range[1]} on {total} rows
+              </div>
+            );
+          },
+        }}
+        onChange={onChange}
+      />
 
       <UpdateUserModal
         isModalUpdateOpen={isModalUpdateOpen}

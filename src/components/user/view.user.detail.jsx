@@ -15,6 +15,11 @@ const ViewUserDetail = (props) => {
     setIsDetailOpen(false);
   };
 
+  // 🧩 Lấy URL ảnh đầy đủ
+  const avatarUrl = dataDetail?.avatar
+    ? `${import.meta.env.VITE_BACKEND_URL}/images/avatar/${dataDetail.avatar}`
+    : null;
+
   return (
     <Drawer
       title="👤 User Details"
@@ -28,11 +33,19 @@ const ViewUserDetail = (props) => {
       {dataDetail ? (
         <div className="flex flex-col items-center text-center">
           <Avatar
-            size={80}
-            icon={<UserOutlined />}
-            style={{ backgroundColor: "#1677ff", marginBottom: 16 }}
+            size={120}
+            src={avatarUrl}
+            icon={!avatarUrl && <UserOutlined />}
+            style={{
+              backgroundColor: !avatarUrl ? "#1677ff" : "transparent",
+              marginBottom: 16,
+              border: "1px solid #ddd",
+            }}
           />
-          <h2 className="text-lg font-semibold mb-1">{dataDetail.fullName}</h2>
+
+          <h2 className="text-lg font-semibold mb-1">
+            {dataDetail.fullName || "No name"}
+          </h2>
           <p className="text-gray-500 mb-4">ID: {dataDetail._id}</p>
 
           <Divider />
@@ -53,15 +66,17 @@ const ViewUserDetail = (props) => {
             >
               {dataDetail.email || "Not available"}
             </Descriptions.Item>
+
             <Descriptions.Item
               label={
                 <>
-                  <PhoneOutlined /> Phone Number
+                  <PhoneOutlined /> Phone
                 </>
               }
             >
               {dataDetail.phone || "Not available"}
             </Descriptions.Item>
+
             <Descriptions.Item
               label={
                 <>
