@@ -3,10 +3,15 @@ import { Button, Input, Modal, Upload, Image, notification } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { updateUserAPI, uploadFileAPI } from "../../services/api.service";
 
-const UpdateUserModal = (props) => {
+const UpdateBookModal = (props) => {
   const [id, setId] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [mainText, setMainText] = useState("");
+  const [author, setAuthor] = useState("");
+  const [price, setPrice] = useState("");
+  const [sold, setSold] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [category, setCategory] = useState("");
+
   const [avatarFile, setAvatarFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,33 +24,37 @@ const UpdateUserModal = (props) => {
     onUserCreated,
   } = props;
 
-  // ✅ Khi mở modal, tự động load dữ liệu user
+  // ✅ Khi mở modal, tự động load dữ liệu book
   useEffect(() => {
     if (dataUpdate) {
       setId(dataUpdate._id || "");
-      setFullName(dataUpdate.fullName || "");
-      setPhone(dataUpdate.phone || "");
+      setMainText(dataUpdate.mainText || "");
+      setAuthor(dataUpdate.author || "");
+      setPrice(dataUpdate.price || "");
+      setSold(dataUpdate.sold || "");
+      setQuantity(dataUpdate.quantity || "");
+      setCategory(dataUpdate.category || "");
 
       // ✅ Hiển thị avatar cũ nếu có (ghép URL đầy đủ)
-      if (dataUpdate.avatar) {
-        setPreviewUrl(
-          `${import.meta.env.VITE_BACKEND_URL}/images/avatar/${
-            dataUpdate.avatar
-          }`
-        );
-      } else {
-        setPreviewUrl("");
-      }
+      // if (dataUpdate.avatar) {
+      //   setPreviewUrl(
+      //     `${import.meta.env.VITE_BACKEND_URL}/images/avatar/${
+      //       dataUpdate.avatar
+      //     }`
+      //   );
+      // } else {
+      //   setPreviewUrl("");
+      // }
     }
   }, [dataUpdate]);
 
-  const handleBeforeUpload = (file) => {
-    setAvatarFile(file);
-    setPreviewUrl(URL.createObjectURL(file)); // ✅ Preview ngay ảnh mới
-    return false; // Ngăn AntD upload tự động
-  };
+  // const handleBeforeUpload = (file) => {
+  //   setAvatarFile(file);
+  //   setPreviewUrl(URL.createObjectURL(file)); // ✅ Preview ngay ảnh mới
+  //   return false; // Ngăn AntD upload tự động
+  // };
 
-  const handleUpdateUser = async () => {
+  const handleUpdateBook = async () => {
     if (!id) {
       notification.warning({
         message: "Lỗi dữ liệu",
@@ -56,18 +65,27 @@ const UpdateUserModal = (props) => {
 
     setLoading(true);
     try {
-      let avatarName = dataUpdate?.avatar || "";
+      // let avatarName = dataUpdate?.avatar || "";
 
       // 🧩 Upload file mới nếu có
-      if (avatarFile) {
-        const resUpload = await uploadFileAPI(avatarFile);
-        if (resUpload?.data?.fileUploaded) {
-          avatarName = resUpload.data.fileUploaded;
-        }
-      }
+      // if (avatarFile) {
+      //   const resUpload = await uploadFileAPI(avatarFile);
+      //   if (resUpload?.data?.fileUploaded) {
+      //     avatarName = resUpload.data.fileUploaded;
+      //   }
+      // }
 
       // 🧩 Gửi request cập nhật
-      const res = await updateUserAPI(id, fullName, phone, avatarName);
+      const res = await updateBookAPI(
+        id,
+        thumbnail,
+        mainText,
+        author,
+        price,
+        sold,
+        quantity,
+        category
+      );
 
       if (res?.data) {
         notification.success({
@@ -80,10 +98,11 @@ const UpdateUserModal = (props) => {
         // ✅ Reset state & đóng modal
         setIsModalUpdateOpen(false);
         setId("");
-        setFullName("");
-        setPhone("");
-        setAvatarFile(null);
-        setPreviewUrl("");
+        setMainText("");
+        setAuthor("");
+        setPrice("");
+        setSold("");
+        setQuantity("");
         setDataUpdate(null);
       } else {
         notification.error({
@@ -105,9 +124,9 @@ const UpdateUserModal = (props) => {
   return (
     <div style={{ margin: "20px 0" }}>
       <Modal
-        title="Edit User"
+        title="Edit Book"
         open={isModalUpdateOpen}
-        onOk={handleUpdateUser}
+        onOk={handleUpdateBook}
         onCancel={() => setIsModalUpdateOpen(false)}
         maskClosable={false}
         okText="Save"
@@ -122,17 +141,42 @@ const UpdateUserModal = (props) => {
           <div>
             <span>Full Name</span>
             <Input
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              value={mainText}
+              onChange={(e) => setMainText(e.target.value)}
             />
           </div>
 
           <div>
-            <span>Phone Number</span>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <span>Author</span>
+            <Input value={author} onChange={(e) => setAuthor(e.target.value)} />
           </div>
 
           <div>
+            <span>Price</span>
+            <Input value={price} onChange={(e) => setPrice(e.target.value)} />
+          </div>
+
+          <div>
+            <span>Sold</span>
+            <Input value={sold} onChange={(e) => setSold(e.target.value)} />
+          </div>
+
+          <div>
+            <span>Quantity</span>
+            <Input
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+            />
+          </div>
+          <div>
+            <span>Category</span>
+            <Input
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            />
+          </div>
+
+          {/* <div>
             <span>Avatar</span>
             <Upload
               beforeUpload={handleBeforeUpload}
@@ -156,11 +200,11 @@ const UpdateUserModal = (props) => {
                 }}
               />
             )}
-          </div>
+          </div> */}
         </div>
       </Modal>
     </div>
   );
 };
 
-export default UpdateUserModal;
+export default UpdateBookModal;

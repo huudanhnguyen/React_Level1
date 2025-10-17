@@ -1,13 +1,16 @@
 import { Button, Input, Modal, notification, Upload, Image } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useState } from "react";
-import { createUserAPI, uploadFileAPI } from "../../services/api.service";
+import { createBookAPI, uploadFileAPI } from "../../services/api.service";
 
-const UserForm = ({ onUserCreated }) => {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
+const BookForm = ({ onBookCreated }) => {
+  const [mainText, setMainText] = useState("");
+  const [author, setAuthor] = useState("");
+  const [price, setPrice] = useState("");
+  const [sold, setSold] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [category, setCategory] = useState("");
+
   const [avatarFile, setAvatarFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,8 +24,8 @@ const UserForm = ({ onUserCreated }) => {
   };
 
   // ✅ Xử lý tạo user
-  const handleCreateUser = async () => {
-    if (!fullName || !email || !password) {
+  const handleCreateBook = async () => {
+    if (!mainText || !author || !price || !sold || !quantity || !category) {
       notification.warning({
         message: "Thiếu thông tin",
         description: "Vui lòng nhập đầy đủ họ tên, email và mật khẩu.",
@@ -36,7 +39,7 @@ const UserForm = ({ onUserCreated }) => {
 
       // 🧩 Upload ảnh trước (nếu có)
       if (avatarFile) {
-        const resUpload = await uploadFileAPI(avatarFile, "avatar");
+        const resUpload = await uploadFileAPI(avatarFile, "thumbnail");
 
         // kiểm tra chính xác chỗ chứa tên file
         const uploadedFile =
@@ -57,36 +60,37 @@ const UserForm = ({ onUserCreated }) => {
       }
 
       // 🧩 Gửi request tạo user
-      const newUser = {
-        fullName,
-        email,
-        password,
-        phone,
-        avatar: avatarFilename,
+      const newBook = {
+        mainText,
+        author,
+        price,
+        sold,
+        quantity,
+        category,
+        thumbnail: avatarFilename,
       };
 
-
-      const res = await createUserAPI(newUser);
+      const res = await createBookAPI(newBook);
 
       if (res?.data) {
         notification.success({
-          message: "Tạo user thành công",
-          description: `${fullName} đã được thêm.`,
+          message: "Tạo Book thành công",
+          description: `${mainText} đã được thêm.`,
         });
 
-        if (onUserCreated) onUserCreated(res.data);
+        if (onBookCreated) onBookCreated(res.data);
 
         // ✅ Reset form
-        setFullName("");
-        setEmail("");
-        setPassword("");
-        setPhone("");
-        setAvatarFile(null);
-        setPreviewUrl("");
-        setIsModalOpen(false);
+        setIsModalUpdateOpen(false);
+        setId("");
+        setMainText("");
+        setAuthor("");
+        setPrice("");
+        setSold("");
+        setQuantity("");
       } else {
         notification.error({
-          message: "Tạo user thất bại",
+          message: "Tạo book thất bại",
           description: JSON.stringify(res?.message),
         });
       }
@@ -104,9 +108,9 @@ const UserForm = ({ onUserCreated }) => {
   return (
     <div style={{ margin: "20px 0" }}>
       <Modal
-        title="Create User"
+        title="Create Book"
         open={isModalOpen}
-        onOk={handleCreateUser}
+        onOk={handleCreateBook}
         onCancel={() => setIsModalOpen(false)}
         maskClosable={false}
         okText="Create"
@@ -114,29 +118,41 @@ const UserForm = ({ onUserCreated }) => {
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 15 }}>
           <div>
-            <span>Full Name</span>
+            <span>Name</span>
             <Input
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              value={mainText}
+              onChange={(e) => setMainText(e.target.value)}
             />
           </div>
 
           <div>
-            <span>Email</span>
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} />
+            <span>Author</span>
+            <Input value={author} onChange={(e) => setAuthor(e.target.value)} />
           </div>
 
           <div>
-            <span>Password</span>
-            <Input.Password
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+            <span>Price</span>
+            <Input value={price} onChange={(e) => setPrice(e.target.value)} />
+          </div>
+
+          <div>
+            <span>Sold</span>
+            <Input value={sold} onChange={(e) => setSold(e.target.value)} />
+          </div>
+
+          <div>
+            <span>Quantity</span>
+            <Input
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
             />
           </div>
-
           <div>
-            <span>Phone Number</span>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <span>Category</span>
+            <Input
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            />
           </div>
 
           <div>
@@ -173,13 +189,13 @@ const UserForm = ({ onUserCreated }) => {
           alignItems: "center",
         }}
       >
-        <h3>User Table</h3>
+        <h3>Book Table</h3>
         <Button type="primary" onClick={() => setIsModalOpen(true)}>
-          Create User
+          Create Book
         </Button>
       </div>
     </div>
   );
 };
 
-export default UserForm;
+export default BookForm;
