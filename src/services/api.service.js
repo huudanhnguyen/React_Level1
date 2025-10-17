@@ -17,14 +17,12 @@ let config = {
 
 // 🧩 API tạo user
 const createUserAPI = (data) => {
-  console.log("📦 Dữ liệu gửi lên backend:", data);
   return axios.post("/api/v1/user", data);
 };
 
 // 🧩 API cập nhật user
 const updateUserAPI = (_id, fullName, phone, avatar) => {
   const data = { _id, fullName, phone, avatar };
-  console.log("📦 Dữ liệu update gửi lên backend:", data);
   return axios.put("/api/v1/user", data);
 };
 
@@ -53,6 +51,10 @@ const loginAPI=(email,password)=>{
   }
   return axios.post(URL_BACKEND,data)
 }
+const getAccountAPI=()=>{
+  const URL_BACKEND="/api/v1/auth/account";
+  return axios.get(URL_BACKEND)
+}
 
 export {
   createUserAPI,
@@ -61,5 +63,6 @@ export {
   deleteUserAPI,
   uploadFileAPI,
   registerUserAPI,
-  loginAPI
+  loginAPI,
+  getAccountAPI
 };

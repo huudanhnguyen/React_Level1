@@ -37,7 +37,6 @@ const UserForm = ({ onUserCreated }) => {
       // 🧩 Upload ảnh trước (nếu có)
       if (avatarFile) {
         const resUpload = await uploadFileAPI(avatarFile, "avatar");
-        console.log("🔍 Response upload ảnh:", resUpload);
 
         // kiểm tra chính xác chỗ chứa tên file
         const uploadedFile =
@@ -47,7 +46,6 @@ const UserForm = ({ onUserCreated }) => {
 
         if (uploadedFile) {
           avatarFilename = uploadedFile;
-          console.log("🖼 Ảnh upload thành công:", avatarFilename);
         } else {
           notification.error({
             message: "Upload ảnh thất bại",
@@ -67,10 +65,8 @@ const UserForm = ({ onUserCreated }) => {
         avatar: avatarFilename,
       };
 
-      console.log("📦 Dữ liệu gửi lên backend:", newUser);
 
       const res = await createUserAPI(newUser);
-      console.log(res.data);
 
       if (res?.data) {
         notification.success({

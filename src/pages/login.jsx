@@ -30,7 +30,6 @@ const LoginPage = () => {
   const onFinish = async (values) => {
     setLoading(true);
     const res = await loginAPI(values.email, values.password);
-    console.log(res.data);
     if (res.data) {
       notification.success({
         message: "Login User",
