@@ -15,7 +15,6 @@ const BookTable = ({ triggerReload, newBook }) => {
   const [pageSize, setPageSize] = useState(5);
   const [total, setTotal] = useState(0);
 
-  // 🧩 Load danh sách book từ API
   const loadBook = async () => {
     const res = await fetchAllBookAPI(current, pageSize);
     if (res?.data?.result) {
@@ -26,24 +25,20 @@ const BookTable = ({ triggerReload, newBook }) => {
     }
   };
 
-  // 🧩 Lần đầu load
   useEffect(() => {
     loadBook();
   }, [current, pageSize]);
 
-  // 🧩 Reload khi tạo mới
   useEffect(() => {
     if (triggerReload > 0) loadBook();
   }, [triggerReload]);
 
-  // 🧩 Khi có newBook → thêm vào đầu danh sách
   useEffect(() => {
     if (newBook) {
       setDataBooks((prev) => [newBook, ...prev]);
     }
   }, [newBook]);
 
-  // 🧩 Xoá book
   const handleDeleteBook = async (id) => {
     const res = await deleteBookAPI(id);
     if (res.data) {
@@ -60,21 +55,23 @@ const BookTable = ({ triggerReload, newBook }) => {
     }
   };
 
-  // 🧩 Xử lý thay đổi phân trang
   const onChange = (pagination) => {
     if (pagination?.current) setCurrent(pagination.current);
     if (pagination?.pageSize) setPageSize(pagination.pageSize);
   };
 
-  // 🧩 Cột hiển thị
   const columns = [
     {
-      title: "Serial",
+      title: "#",
       render: (_, __, index) => index + 1 + (current - 1) * pageSize,
+      width: 60,
+      fixed: "left",
+      responsive: ["xs", "sm", "md", "lg"],
     },
     {
       title: "ID",
       dataIndex: "_id",
+      width: 180,
       render: (_, record) => (
         <a
           href="#"
@@ -87,10 +84,12 @@ const BookTable = ({ triggerReload, newBook }) => {
           {record._id}
         </a>
       ),
+      responsive: ["sm", "md", "lg"],
     },
     {
       title: "Thumbnail",
       dataIndex: "thumbnail",
+      width: 90,
       render: (thumbnail) => {
         const imgUrl = thumbnail
           ? `${import.meta.env.VITE_BACKEND_URL}/images/book/${thumbnail}`
@@ -100,21 +99,33 @@ const BookTable = ({ triggerReload, newBook }) => {
             src={imgUrl}
             alt="book thumbnail"
             style={{
-              width: 60,
-              height: 80,
+              width: 50,
+              height: 70,
               objectFit: "cover",
-              borderRadius: 6,
+              borderRadius: 4,
               border: "1px solid #eee",
             }}
           />
         );
       },
+      responsive: ["md", "lg"],
     },
-    { title: "Name", dataIndex: "mainText" },
-    { title: "Author", dataIndex: "author" },
+    {
+      title: "Name",
+      dataIndex: "mainText",
+      width: 200,
+      responsive: ["xs", "sm", "md", "lg"],
+    },
+    {
+      title: "Author",
+      dataIndex: "author",
+      width: 150,
+      responsive: ["sm", "md", "lg"],
+    },
     {
       title: "Price",
       dataIndex: "price",
+      width: 120,
       render: (price) =>
         price
           ? new Intl.NumberFormat("vi-VN", {
@@ -122,13 +133,26 @@ const BookTable = ({ triggerReload, newBook }) => {
               currency: "VND",
             }).format(price)
           : "-",
+      responsive: ["xs", "sm", "md", "lg"],
     },
-    { title: "Sold", dataIndex: "sold" },
-    { title: "Quantity", dataIndex: "quantity" },
-    { title: "Category", dataIndex: "category" },
+    { title: "Sold", dataIndex: "sold", width: 80, responsive: ["md", "lg"] },
+    {
+      title: "Quantity",
+      dataIndex: "quantity",
+      width: 100,
+      responsive: ["lg"],
+    },
+    {
+      title: "Category",
+      dataIndex: "category",
+      width: 120,
+      responsive: ["md", "lg"],
+    },
     {
       title: "Action",
       key: "action",
+      width: 100,
+      fixed: "right",
       render: (_, record) => (
         <Space size="middle">
           <EditOutlined
@@ -149,15 +173,17 @@ const BookTable = ({ triggerReload, newBook }) => {
           </Popconfirm>
         </Space>
       ),
+      responsive: ["xs", "sm", "md", "lg"],
     },
   ];
 
   return (
-    <>
+    <div style={{ overflowX: "auto", padding: "10px" }}>
       <Table
         columns={columns}
         dataSource={dataBooks}
         rowKey="_id"
+        scroll={{ x: "max-content" }} // ✅ Cho phép cuộn ngang nếu màn hình nhỏ
         pagination={{
           current,
           pageSize,
@@ -168,23 +194,23 @@ const BookTable = ({ triggerReload, newBook }) => {
         onChange={onChange}
       />
 
-      {/* ✅ Modal cập nhật */}
+      {/* Modal cập nhật */}
       <UpdateBookModal
         isModalUpdateOpen={isModalUpdateOpen}
         setIsModalUpdateOpen={setIsModalUpdateOpen}
         dataUpdate={dataUpdate}
         setDataUpdate={setDataUpdate}
-        onBookUpdated={loadBook} // ✅ Gọi lại loadBook() sau khi cập nhật
+        onBookUpdated={loadBook}
       />
 
-      {/* ✅ Modal xem chi tiết */}
+      {/* Modal xem chi tiết */}
       <ViewBookDetail
         dataDetail={dataDetail}
         setDataDetail={setDataDetail}
         isDetailOpen={isDetailOpen}
         setIsDetailOpen={setIsDetailOpen}
       />
-    </>
+    </div>
   );
 };
 

@@ -1,33 +1,41 @@
 import { useState } from "react";
-const TodoNew = (props) => {
-  const { addNewTodo } = props;
+
+const TodoNew = ({ addNewTodo }) => {
   const [myInput, setMyInput] = useState("");
-  const handleClick = () => {
-    addNewTodo(myInput);
+
+  const handleAddTodo = () => {
+    if (!myInput.trim()) return; // Không cho thêm todo trống
+    addNewTodo(myInput.trim());
     setMyInput("");
   };
-  const handleOnChange = (name) => {
-    setMyInput(name);
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleAddTodo();
+    }
   };
+
   return (
-    <div>
-      <input
-        type="text"
-        className="todo-input"
-        value={myInput}
-        onChange={(event) => {
-          handleOnChange(event.target.value);
-        }}
-      />
-      <button
-        className="add-btn"
-        style={{ cursor: "pointer" }}
-        onClick={handleClick}
-      >
-        Add
-      </button>
-      <div className="">my input is: {myInput}</div>
+    <div className="todo-new">
+      <div className="todo-input">
+        <input
+          type="text"
+          placeholder="Nhập công việc cần làm..."
+          value={myInput}
+          onChange={(e) => setMyInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <button className="add-btn" onClick={handleAddTodo}>
+          + Thêm
+        </button>
+      </div>
+      {myInput && (
+        <div className="todo-preview">
+          ✏️ Đang nhập: <span>{myInput}</span>
+        </div>
+      )}
     </div>
   );
 };
+
 export default TodoNew;

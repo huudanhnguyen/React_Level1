@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Table, Space, message, Popconfirm, Button, notification, Avatar } from "antd";
+import {
+  Table,
+  Space,
+  message,
+  Popconfirm,
+  Button,
+  notification,
+  Avatar,
+} from "antd";
 import { EditOutlined, DeleteOutlined, UserOutlined } from "@ant-design/icons";
 import { deleteUserAPI, fetchAllUserAPI } from "../../services/api.service";
 import UpdateUserModal from "./update.user";
@@ -15,10 +23,10 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
   const [pageSize, setPageSize] = useState(5);
   const [total, setTotal] = useState(0);
 
-  // Load all users
+  // 🧩 Load user list
   const loadUser = async () => {
     const res = await fetchAllUserAPI(current, pageSize);
-    if (res?.data.result) {
+    if (res?.data?.result) {
       setDataUsers(res.data.result);
       setCurrent(res.data.meta.current);
       setPageSize(res.data.meta.pageSize);
@@ -68,12 +76,18 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
   const columns = [
     {
       title: "Serial",
-      render: (_, record, index) => index + 1 + (current - 1) * pageSize,
+      key: "serial",
+      width: 80,
+      align: "center",
+      render: (_, __, index) => index + 1 + (current - 1) * pageSize,
+      responsive: ["lg"], // ẩn trên màn hình nhỏ
     },
     {
       title: "Avatar",
       dataIndex: "avatar",
-      render: (avatar, record) => {
+      width: 90,
+      align: "center",
+      render: (avatar) => {
         const avatarUrl = avatar
           ? `${import.meta.env.VITE_BACKEND_URL}/images/avatar/${avatar}`
           : null;
@@ -90,6 +104,7 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
     {
       title: "ID",
       dataIndex: "_id",
+      ellipsis: true,
       render: (_, record) => (
         <a
           href="#"
@@ -98,16 +113,28 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
             setDataDetail(record);
             setIsDetailOpen(true);
           }}
+          style={{ color: "#1677ff" }}
         >
           {record._id}
         </a>
       ),
     },
-    { title: "Full Name", dataIndex: "fullName" },
-    { title: "Email", dataIndex: "email" },
+    {
+      title: "Full Name",
+      dataIndex: "fullName",
+      ellipsis: true,
+      responsive: ["sm"],
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      ellipsis: true,
+      responsive: ["md"],
+    },
     {
       title: "Action",
       key: "action",
+      align: "center",
       render: (_, record) => (
         <Space size="middle">
           <EditOutlined
@@ -133,24 +160,38 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
 
   return (
     <>
-      <Table
-        columns={columns}
-        dataSource={dataUsers}
-        rowKey="_id"
-        pagination={{
-          current,
-          pageSize,
-          showSizeChanger: true,
-          total,
-          showTotal: (total, range) => (
-            <div>
-              {range[0]}-{range[1]} on {total} rows
-            </div>
-          ),
+      <div
+        style={{
+          overflowX: "auto",
+          padding: "8px",
+          background: "#fff",
+          borderRadius: 8,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
         }}
-        onChange={onChange}
-      />
+      >
+        <Table
+          columns={columns}
+          dataSource={dataUsers}
+          rowKey="_id"
+          pagination={{
+            current,
+            pageSize,
+            showSizeChanger: true,
+            total,
+            showTotal: (total, range) => (
+              <div>
+                {range[0]}-{range[1]} of {total} users
+              </div>
+            ),
+          }}
+          scroll={{ x: "max-content" }}
+          onChange={onChange}
+          size="middle"
+          responsive
+        />
+      </div>
 
+      {/* Modal Update */}
       <UpdateUserModal
         isModalUpdateOpen={isModalUpdateOpen}
         setIsModalUpdateOpen={setIsModalUpdateOpen}
@@ -159,6 +200,7 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
         onUserCreated={onUserCreated}
       />
 
+      {/* Modal Detail */}
       <ViewUserDetail
         dataDetail={dataDetail}
         setDataDetail={setDataDetail}
