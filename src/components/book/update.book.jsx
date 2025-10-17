@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
-import { Button, Input, Modal, Upload, Image, notification } from "antd";
+import {
+  Button,
+  Input,
+  Modal,
+  Upload,
+  Image,
+  notification,
+  Select,
+  InputNumber,
+} from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { updateUserAPI, uploadFileAPI } from "../../services/api.service";
+import { updateBookAPI, uploadFileAPI } from "../../services/api.service";
 
 const UpdateBookModal = (props) => {
   const [id, setId] = useState("");
@@ -21,7 +30,7 @@ const UpdateBookModal = (props) => {
     setIsModalUpdateOpen,
     dataUpdate,
     setDataUpdate,
-    onUserCreated,
+    onBookUpdated, // ✅ callback từ BookTable để reload dữ liệu
   } = props;
 
   // ✅ Khi mở modal, tự động load dữ liệu book
@@ -35,67 +44,77 @@ const UpdateBookModal = (props) => {
       setQuantity(dataUpdate.quantity || "");
       setCategory(dataUpdate.category || "");
 
-      // ✅ Hiển thị avatar cũ nếu có (ghép URL đầy đủ)
-      // if (dataUpdate.avatar) {
-      //   setPreviewUrl(
-      //     `${import.meta.env.VITE_BACKEND_URL}/images/avatar/${
-      //       dataUpdate.avatar
-      //     }`
-      //   );
-      // } else {
-      //   setPreviewUrl("");
-      // }
+      if (dataUpdate.thumbnail) {
+        setPreviewUrl(
+          `${import.meta.env.VITE_BACKEND_URL}/images/book/${
+            dataUpdate.thumbnail
+          }`
+        );
+      } else {
+        setPreviewUrl("");
+      }
     }
   }, [dataUpdate]);
 
-  // const handleBeforeUpload = (file) => {
-  //   setAvatarFile(file);
-  //   setPreviewUrl(URL.createObjectURL(file)); // ✅ Preview ngay ảnh mới
-  //   return false; // Ngăn AntD upload tự động
-  // };
+  const handleBeforeUpload = (file) => {
+    setAvatarFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    return false;
+  };
 
   const handleUpdateBook = async () => {
     if (!id) {
       notification.warning({
         message: "Lỗi dữ liệu",
-        description: "Không xác định được người dùng để cập nhật.",
+        description: "Không xác định được sách để cập nhật.",
       });
       return;
     }
 
     setLoading(true);
     try {
-      // let avatarName = dataUpdate?.avatar || "";
+      let thumbnailName = dataUpdate?.thumbnail || "";
 
-      // 🧩 Upload file mới nếu có
-      // if (avatarFile) {
-      //   const resUpload = await uploadFileAPI(avatarFile);
-      //   if (resUpload?.data?.fileUploaded) {
-      //     avatarName = resUpload.data.fileUploaded;
-      //   }
-      // }
+      if (avatarFile) {
+        const resUpload = await uploadFileAPI(avatarFile, "book");
+        const uploadedFile =
+          resUpload?.data?.data?.fileUploaded ||
+          resUpload?.data?.fileUploaded ||
+          resUpload?.fileUploaded;
 
-      // 🧩 Gửi request cập nhật
+        if (uploadedFile) {
+          thumbnailName = uploadedFile;
+        } else {
+          notification.error({
+            message: "Upload ảnh thất bại",
+            description: JSON.stringify(resUpload?.data || resUpload),
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
       const res = await updateBookAPI(
         id,
-        thumbnail,
+        thumbnailName,
         mainText,
         author,
-        price,
-        sold,
-        quantity,
+        Number(price),
+        Number(sold),
+        Number(quantity),
         category
       );
 
       if (res?.data) {
         notification.success({
           message: "Cập nhật thành công",
-          description: "Thông tin người dùng đã được cập nhật.",
+          description: "Thông tin sách đã được cập nhật.",
         });
 
-        if (onUserCreated) onUserCreated(res.data);
+        // ✅ Gọi callback để reload dữ liệu trong bảng
+        if (onBookUpdated) onBookUpdated(res.data);
 
-        // ✅ Reset state & đóng modal
+        // ✅ Reset form & đóng modal
         setIsModalUpdateOpen(false);
         setId("");
         setMainText("");
@@ -103,6 +122,9 @@ const UpdateBookModal = (props) => {
         setPrice("");
         setSold("");
         setQuantity("");
+        setCategory("");
+        setAvatarFile(null);
+        setPreviewUrl("");
         setDataUpdate(null);
       } else {
         notification.error({
@@ -114,7 +136,7 @@ const UpdateBookModal = (props) => {
       console.error(err);
       notification.error({
         message: "Lỗi server",
-        description: "Không thể cập nhật người dùng.",
+        description: "Không thể cập nhật sách.",
       });
     } finally {
       setLoading(false);
@@ -139,7 +161,7 @@ const UpdateBookModal = (props) => {
           </div>
 
           <div>
-            <span>Full Name</span>
+            <span>Book Name</span>
             <Input
               value={mainText}
               onChange={(e) => setMainText(e.target.value)}
@@ -153,35 +175,66 @@ const UpdateBookModal = (props) => {
 
           <div>
             <span>Price</span>
-            <Input value={price} onChange={(e) => setPrice(e.target.value)} />
-          </div>
-
-          <div>
-            <span>Sold</span>
-            <Input value={sold} onChange={(e) => setSold(e.target.value)} />
-          </div>
-
-          <div>
-            <span>Quantity</span>
-            <Input
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-            />
-          </div>
-          <div>
-            <span>Category</span>
-            <Input
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
+            <InputNumber
+              value={price}
+              onChange={(value) => setPrice(value)}
+              formatter={(value) =>
+                value
+                  ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VND"
+                  : ""
+              }
+              parser={(value) => (value ? value.replace(/\D/g, "") : "")}
+              placeholder="Nhập giá tiền"
+              style={{ width: "100%" }}
             />
           </div>
 
           {/* <div>
-            <span>Avatar</span>
+            <span>Sold</span>
+            <Input
+              type="number"
+              value={sold}
+              onChange={(e) => setSold(e.target.value)}
+            />
+          </div> */}
+
+          <div>
+            <span>Quantity</span>
+            <Input
+              type="number"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <span>Category</span>
+            <Select
+              value={category}
+              onChange={(value) => setCategory(value)}
+              style={{ width: "100%" }}
+              placeholder="Chọn thể loại"
+              options={[
+                { value: "Arts", label: "Arts" },
+                { value: "Business", label: "Business" },
+                { value: "Comics", label: "Comics" },
+                { value: "Cooking", label: "Cooking" },
+                { value: "Entertainment", label: "Entertainment" },
+                { value: "History", label: "History" },
+                { value: "Music", label: "Music" },
+                { value: "Sports", label: "Sports" },
+                { value: "Teen", label: "Teen" },
+                { value: "Travel", label: "Travel" },
+              ]}
+            />
+          </div>
+
+          <div>
             <Upload
               beforeUpload={handleBeforeUpload}
               showUploadList={false}
               accept="image/*"
+              style={{ marginLeft: 10 }}
             >
               <Button icon={<PlusOutlined />}>Chọn ảnh</Button>
             </Upload>
@@ -189,18 +242,18 @@ const UpdateBookModal = (props) => {
             {previewUrl && (
               <Image
                 src={previewUrl}
-                alt="avatar preview"
+                alt="thumbnail preview"
                 style={{
                   marginTop: 10,
                   width: 120,
                   height: 120,
-                  borderRadius: "50%",
+                  borderRadius: "10px",
                   objectFit: "cover",
                   border: "1px solid #ddd",
                 }}
               />
             )}
-          </div> */}
+          </div>
         </div>
       </Modal>
     </div>

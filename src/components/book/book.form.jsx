@@ -1,7 +1,30 @@
-import { Button, Input, Modal, notification, Upload, Image } from "antd";
+import {
+  Button,
+  Input,
+  Modal,
+  notification,
+  Upload,
+  Image,
+  Select,
+} from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { createBookAPI, uploadFileAPI } from "../../services/api.service";
+import { InputNumber } from "antd";
+
+// 🧩 Danh sách category cố định
+const CATEGORY_OPTIONS = [
+  { value: "Arts", label: "Arts" },
+  { value: "Business", label: "Business" },
+  { value: "Comics", label: "Comics" },
+  { value: "Cooking", label: "Cooking" },
+  { value: "Entertainment", label: "Entertainment" },
+  { value: "History", label: "History" },
+  { value: "Music", label: "Music" },
+  { value: "Sports", label: "Sports" },
+  { value: "Teen", label: "Teen" },
+  { value: "Travel", label: "Travel" },
+];
 
 const BookForm = ({ onBookCreated }) => {
   const [mainText, setMainText] = useState("");
@@ -23,12 +46,20 @@ const BookForm = ({ onBookCreated }) => {
     return false; // chặn upload tự động của AntD
   };
 
-  // ✅ Xử lý tạo user
+  // ✅ Xử lý tạo book
   const handleCreateBook = async () => {
-    if (!mainText || !author || !price || !sold || !quantity || !category) {
+    if (!mainText || !author || !price || !quantity || !category) {
       notification.warning({
         message: "Thiếu thông tin",
-        description: "Vui lòng nhập đầy đủ họ tên, email và mật khẩu.",
+        description: "Vui lòng nhập đầy đủ thông tin sách.",
+      });
+      return;
+    }
+
+    if (isNaN(Number(price)) || isNaN(Number(quantity))) {
+      notification.warning({
+        message: "Thông tin không hợp lệ",
+        description: "Price, Quantity phải là số.",
       });
       return;
     }
@@ -37,11 +68,12 @@ const BookForm = ({ onBookCreated }) => {
     try {
       let avatarFilename = "";
 
-      // 🧩 Upload ảnh trước (nếu có)
+      // Upload ảnh nếu có
       if (avatarFile) {
-        const resUpload = await uploadFileAPI(avatarFile, "thumbnail");
+        // ✅ truyền file và folder đúng cách cho backend
+        const resUpload = await uploadFileAPI(avatarFile, "book");
 
-        // kiểm tra chính xác chỗ chứa tên file
+        // ✅ backend của bạn trả về dạng { data: { fileUploaded: "xxx.jpg" } }
         const uploadedFile =
           resUpload?.data?.data?.fileUploaded ||
           resUpload?.data?.fileUploaded ||
@@ -52,53 +84,61 @@ const BookForm = ({ onBookCreated }) => {
         } else {
           notification.error({
             message: "Upload ảnh thất bại",
-            description: JSON.stringify(resUpload?.data || resUpload),
+            description:
+              "Không tìm thấy thông tin file trong phản hồi server: " +
+              JSON.stringify(resUpload?.data || {}),
           });
           setLoading(false);
           return;
         }
       }
 
-      // 🧩 Gửi request tạo user
+      // ✅ Gửi dữ liệu tạo book đúng định dạng backend yêu cầu
       const newBook = {
+        thumbnail: avatarFilename,
         mainText,
         author,
-        price,
-        sold,
-        quantity,
+        price: Number(price),
+        sold: Number(sold) || 0,
+        quantity: Number(quantity),
         category,
-        thumbnail: avatarFilename,
       };
 
       const res = await createBookAPI(newBook);
 
-      if (res?.data) {
+      const createdBook = res?.data?.data || res?.data || null;
+
+      if (createdBook) {
         notification.success({
-          message: "Tạo Book thành công",
+          message: "Tạo book thành công",
           description: `${mainText} đã được thêm.`,
         });
+        onBookCreated?.(createdBook);
 
-        if (onBookCreated) onBookCreated(res.data);
-
-        // ✅ Reset form
-        setIsModalUpdateOpen(false);
-        setId("");
+        // reset form
         setMainText("");
         setAuthor("");
         setPrice("");
         setSold("");
         setQuantity("");
+        setCategory("");
+        setAvatarFile(null);
+        setPreviewUrl("");
+        setIsModalOpen(false);
       } else {
         notification.error({
           message: "Tạo book thất bại",
-          description: JSON.stringify(res?.message),
+          description: "Phản hồi server không hợp lệ.",
         });
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error creating book:", error);
       notification.error({
         message: "Lỗi server",
-        description: "Không thể tạo user, vui lòng thử lại.",
+        description:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Không thể tạo book, vui lòng thử lại.",
       });
     } finally {
       setLoading(false);
@@ -132,12 +172,18 @@ const BookForm = ({ onBookCreated }) => {
 
           <div>
             <span>Price</span>
-            <Input value={price} onChange={(e) => setPrice(e.target.value)} />
-          </div>
-
-          <div>
-            <span>Sold</span>
-            <Input value={sold} onChange={(e) => setSold(e.target.value)} />
+            <InputNumber
+              value={price}
+              onChange={(value) => setPrice(value)}
+              formatter={(value) =>
+                value
+                  ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " VND"
+                  : ""
+              }
+              parser={(value) => (value ? value.replace(/\D/g, "") : "")}
+              placeholder="Nhập giá tiền"
+              style={{ width: "100%" }}
+            />
           </div>
 
           <div>
@@ -145,13 +191,18 @@ const BookForm = ({ onBookCreated }) => {
             <Input
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
+              placeholder="Nhập số"
             />
           </div>
+
           <div>
             <span>Category</span>
-            <Input
+            <Select
+              style={{ width: "100%" }}
+              placeholder="Chọn category"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(val) => setCategory(val)}
+              options={CATEGORY_OPTIONS}
             />
           </div>
 
@@ -172,7 +223,7 @@ const BookForm = ({ onBookCreated }) => {
                   marginTop: 10,
                   width: 120,
                   height: 120,
-                  borderRadius: "50%",
+                  borderRadius: 8,
                   objectFit: "cover",
                   border: "1px solid #ddd",
                 }}

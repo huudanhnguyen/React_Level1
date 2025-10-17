@@ -6,9 +6,15 @@ const BooksPage = () => {
   const [newBook, setNewBook] = useState(null);
   const [reloadCount, setReloadCount] = useState(0);
 
+  // 🧩 Gọi khi tạo mới
   const handleBookCreated = (book) => {
-    setNewBook(book); // ✅ Thêm user mới vào đầu danh sách
-    setReloadCount((prev) => prev + 1); // ✅ Reload lại danh sách từ API
+    setNewBook(book);
+    setReloadCount((prev) => prev + 1);
+  };
+
+  // 🧩 Gọi khi cập nhật
+  const handleBookUpdated = (book) => {
+    setReloadCount((prev) => prev + 1); // ✅ Tăng biến đếm để trigger reload
   };
 
   return (
@@ -18,6 +24,7 @@ const BooksPage = () => {
         newBook={newBook}
         triggerReload={reloadCount}
         onBookCreated={handleBookCreated}
+        onBookUpdated={handleBookUpdated} // ✅ thêm dòng này
       />
     </div>
   );

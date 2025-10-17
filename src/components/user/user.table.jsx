@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Table, Space, message, Popconfirm, Button, notification } from "antd";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Table, Space, message, Popconfirm, Button, notification, Avatar } from "antd";
+import { EditOutlined, DeleteOutlined, UserOutlined } from "@ant-design/icons";
 import { deleteUserAPI, fetchAllUserAPI } from "../../services/api.service";
 import UpdateUserModal from "./update.user";
 import ViewUserDetail from "./view.user.detail";
@@ -26,17 +26,14 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
     }
   };
 
-  // Initial load
   useEffect(() => {
     loadUser();
   }, [current, pageSize]);
 
-  // Reload when triggerReload changes
   useEffect(() => {
     if (triggerReload > 0) loadUser();
   }, [triggerReload]);
 
-  // If a new user is created → prepend to the table
   useEffect(() => {
     if (newUser) {
       setDataUsers((prev) => [newUser, ...prev]);
@@ -58,43 +55,53 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
       });
     }
   };
-  const onChange = (pagination, filters, sorter, extra) => {
-    if (pagination && pagination.current) {
-      if (pagination.current !== +current) {
-        setCurrent(+pagination.current);
-      }
+
+  const onChange = (pagination) => {
+    if (pagination?.current && pagination.current !== +current) {
+      setCurrent(+pagination.current);
     }
-    if (pagination && pagination.pageSize) {
-      if (pagination.pageSize !== +pageSize) {
-        setPageSize(+pagination.pageSize);
-      }
+    if (pagination?.pageSize && pagination.pageSize !== +pageSize) {
+      setPageSize(+pagination.pageSize);
     }
   };
 
   const columns = [
     {
-      title: "Serial column",
-      render: (_, record, index) => {
-        return <>{index + 1 + (current - 1) * pageSize}</>;
+      title: "Serial",
+      render: (_, record, index) => index + 1 + (current - 1) * pageSize,
+    },
+    {
+      title: "Avatar",
+      dataIndex: "avatar",
+      render: (avatar, record) => {
+        const avatarUrl = avatar
+          ? `${import.meta.env.VITE_BACKEND_URL}/images/avatar/${avatar}`
+          : null;
+        return (
+          <Avatar
+            size={48}
+            src={avatarUrl}
+            icon={!avatarUrl && <UserOutlined />}
+            style={{ border: "1px solid #ddd" }}
+          />
+        );
       },
     },
     {
       title: "ID",
       dataIndex: "_id",
-      render: (_, record) => {
-        return (
-          <a
-            href=""
-            onClick={(e) => {
-              e.preventDefault();
-              setDataDetail(record);
-              setIsDetailOpen(true);
-            }}
-          >
-            {record._id}
-          </a>
-        );
-      },
+      render: (_, record) => (
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            setDataDetail(record);
+            setIsDetailOpen(true);
+          }}
+        >
+          {record._id}
+        </a>
+      ),
     },
     { title: "Full Name", dataIndex: "fullName" },
     { title: "Email", dataIndex: "email" },
@@ -131,18 +138,15 @@ const UserTable = ({ triggerReload, newUser, onUserCreated }) => {
         dataSource={dataUsers}
         rowKey="_id"
         pagination={{
-          current: current,
-          pageSize: pageSize,
+          current,
+          pageSize,
           showSizeChanger: true,
-          total: total,
-          showTotal: (total, range) => {
-            return (
-              <div>
-                {" "}
-                {range[0]}-{range[1]} on {total} rows
-              </div>
-            );
-          },
+          total,
+          showTotal: (total, range) => (
+            <div>
+              {range[0]}-{range[1]} on {total} rows
+            </div>
+          ),
         }}
         onChange={onChange}
       />
